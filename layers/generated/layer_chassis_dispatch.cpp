@@ -1503,7 +1503,7 @@ VkResult DispatchCreateRayTracingPipelinesKHR(
         }
     }
 
-    if (deferredOperation != VK_NULL_HANDLE) {
+    if (deferredOperation != VK_NULL_HANDLE && result != VK_OPERATION_NOT_DEFERRED_KHR) {
         std::vector<std::function<void()>> post_completion_fns;
         auto completion_find = layer_data->deferred_operation_post_completion.pop(deferredOperation);
         if(completion_find->first) {
@@ -1540,6 +1540,10 @@ VkResult DispatchCreateRayTracingPipelinesKHR(
     } else if (wrap_handles){
         if (local_pCreateInfos) {
             delete[] local_pCreateInfos;
+        }
+        if (deferredOperation != VK_NULL_HANDLE) {
+            assert(result == VK_OPERATION_NOT_DEFERRED_KHR);
+            layer_data->deferred_operation_post_completion.pop(deferredOperation);
         }
         for (uint32_t index0 = 0; index0 < createInfoCount; index0++) {
             if (pPipelines[index0] != VK_NULL_HANDLE) {
